@@ -49,6 +49,7 @@ def build():
         "--hidden-import=plugins.input_method",
         "--hidden-import=plugins.network_fixer",
         "--hidden-import=plugins.startup_manager",
+        "--hidden-import=webbrowser",
         "--noconfirm",
         "src/main.py"
     ]
