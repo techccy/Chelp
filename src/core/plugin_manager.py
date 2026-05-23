@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import List, Dict, Optional, Type, Any
 import yaml
 
-from .base import PluginBase
+from plugins.base import PluginBase
 
 
 class PluginManager:
@@ -57,11 +57,11 @@ class PluginManager:
 
     def load_builtin_plugins(self):
         """加载内置插件"""
-        from .disk_cleaner import DiskCleanerPlugin
-        from .display_fixer import DisplayFixerPlugin
-        from .input_method import InputMethodPlugin
-        from .network_fixer import NetworkFixerPlugin
-        from .startup_manager import StartupManagerPlugin
+        from plugins.disk_cleaner import DiskCleanerPlugin
+        from plugins.display_fixer import DisplayFixerPlugin
+        from plugins.input_method import InputMethodPlugin
+        from plugins.network_fixer import NetworkFixerPlugin
+        from plugins.startup_manager import StartupManagerPlugin
 
         self.register_plugin_class(DiskCleanerPlugin)
         self.register_plugin_class(DisplayFixerPlugin)
