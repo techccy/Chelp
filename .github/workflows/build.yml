@@ -36,6 +36,11 @@ jobs:
           --add-data="config;config" `
           --hidden-import=customtkinter `
           --hidden-import=PIL `
+          --hidden-import=yaml `
+          --hidden-import=requests `
+          --hidden-import=openai `
+          --hidden-import=win32com `
+          --hidden-import=pywintypes `
           --hidden-import=core.config `
           --hidden-import=core.plugin_manager `
           --hidden-import=core.ai_matcher `
