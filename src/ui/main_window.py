@@ -302,7 +302,7 @@ class MainWindow(ctk.CTk):
         def run():
             try:
                 result = self.plugin_manager.execute_plugin(plugin.id)
-                logging.info(f"插件执行完成: {plugin.name} - 成功={result.get('success', False)}")
+                logging.info(f"插件执行完成: {plugin.name} - 成功={result.get('success', False)}, 消息={result.get('message', 'N/A')}")
             except Exception as e:
                 logging.error(f"插件执行出错: {plugin.name} - {e}")
                 result = {
@@ -330,9 +330,12 @@ class MainWindow(ctk.CTk):
 
     def _show_result(self, title: str, result: Dict[str, Any]):
         """显示执行结果"""
-        from .result_dialog import ResultDialog
+        logging.info(f"显示结果对话框: 标题={title}, 成功={result.get('success')}, 消息={result.get('message', 'N/A')}")
 
         dialog = ResultDialog(self, title, result)
+        dialog.lift()  # 确保对话框在最前面
+        dialog.attributes('-topmost', True)  # macOS上置顶
+        dialog.after_idle(dialog.attributes, '-topmost', False)  # 然后取消置顶
         dialog.wait_window()
 
     def _open_ai_chat(self):
@@ -351,6 +354,7 @@ class MainWindow(ctk.CTk):
         from .settings_window import SettingsWindow
 
         settings = SettingsWindow(self, self.config)
+        settings.show()
         settings.focus_set()  # 确保窗口获得焦点
 
     def _open_log_window(self):
