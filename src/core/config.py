@@ -4,6 +4,7 @@
 """
 
 import os
+import json
 import yaml
 from pathlib import Path
 from typing import Dict, Any, Optional
@@ -16,7 +17,7 @@ class ConfigManager:
     DEFAULT_CONFIG = {
         "app": {
             "name": "Chelp",
-            "version": "1.0.0",
+            "version": "1.1.0",
             "theme": "light",  # light/dark
             "language": "zh-CN",
             "auto_update": True,
@@ -188,6 +189,81 @@ class ConfigManager:
     def get_input_method(self) -> Optional[str]:
         """获取保存的输入法"""
         return self.get("saved_state.input_method.default")
+
+    def export_to_json(self, file_path: str = None) -> str:
+        """导出配置到JSON文件
+
+        Args:
+            file_path: 导出文件路径，如果为None则使用默认路径
+
+        Returns:
+            实际导出的文件路径
+        """
+        if file_path is None:
+            file_path = self.config_dir / "chelp_config.json"
+        else:
+            file_path = Path(file_path)
+
+        # 过滤敏感信息的占位符
+        export_config = self._config.copy()
+
+        # 如果API密钥为空，添加占位符说明
+        if not export_config.get("ai", {}).get("api_key"):
+            export_config.setdefault("ai", {})["api_key"] = ""
+
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(export_config, f, ensure_ascii=False, indent=2)
+
+        return str(file_path)
+
+    def import_from_json(self, file_path: str, merge: bool = True) -> bool:
+        """从JSON文件导入配置
+
+        Args:
+            file_path: JSON文件路径
+            merge: 是否合并现有配置，False则完全替换
+
+        Returns:
+            是否导入成功
+        """
+        try:
+            file_path = Path(file_path)
+            if not file_path.exists():
+                raise FileNotFoundError(f"配置文件不存在: {file_path}")
+
+            with open(file_path, 'r', encoding='utf-8') as f:
+                imported_config = json.load(f)
+
+            if merge:
+                # 合并配置
+                self._config = self._merge_config(self._config, imported_config)
+            else:
+                # 完全替换
+                self._config = imported_config
+
+            # 保存到YAML配置文件
+            self.save()
+            return True
+
+        except Exception as e:
+            print(f"导入配置失败: {e}")
+            return False
+
+    def get_safe_config(self) -> Dict[str, Any]:
+        """获取安全的配置副本（用于展示或部分导出）
+
+        隐藏敏感信息如API密钥
+        """
+        config = self._config.copy()
+        if "ai" in config and "api_key" in config["ai"]:
+            api_key = config["ai"]["api_key"]
+            if api_key:
+                # 只显示前4位和后4位
+                if len(api_key) > 8:
+                    config["ai"]["api_key"] = api_key[:4] + "****" + api_key[-4:]
+                else:
+                    config["ai"]["api_key"] = "****"
+        return config
 
 
 # 全局配置实例

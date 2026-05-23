@@ -6,6 +6,7 @@ CustomTkinter主界面
 import customtkinter as ctk
 from typing import Optional, List, Dict, Any
 import threading
+import logging
 
 
 class MainWindow(ctk.CTk):
@@ -131,6 +132,17 @@ class MainWindow(ctk.CTk):
                 font=("Microsoft YaHei", 11)
             )
             version_label.pack(side="right", padx=10)
+
+        # 日志按钮
+        log_btn = ctk.CTkButton(
+            status_frame,
+            text="📋 日志",
+            width=80,
+            height=30,
+            command=self._open_log_window,
+            font=("Microsoft YaHei", 11)
+        )
+        log_btn.pack(side="right", padx=5)
 
         # 设置按钮
         settings_btn = ctk.CTkButton(
@@ -278,6 +290,8 @@ class MainWindow(ctk.CTk):
 
     def _execute_plugin(self, plugin):
         """执行插件"""
+        logging.info(f"开始执行插件: {plugin.name} ({plugin.id})")
+
         # 禁用按钮防止重复点击
         for widget in self.plugin_widgets:
             if hasattr(widget, 'plugin') and widget.plugin == plugin:
@@ -286,7 +300,16 @@ class MainWindow(ctk.CTk):
 
         # 在后台线程执行
         def run():
-            result = self.plugin_manager.execute_plugin(plugin.id)
+            try:
+                result = self.plugin_manager.execute_plugin(plugin.id)
+                logging.info(f"插件执行完成: {plugin.name} - 成功={result.get('success', False)}")
+            except Exception as e:
+                logging.error(f"插件执行出错: {plugin.name} - {e}")
+                result = {
+                    "success": False,
+                    "message": f"执行出错: {str(e)}",
+                    "data": None
+                }
 
             # 恢复按钮状态
             self.after(0, lambda: self._on_execute_complete(plugin, result))
@@ -328,7 +351,21 @@ class MainWindow(ctk.CTk):
         from .settings_window import SettingsWindow
 
         settings = SettingsWindow(self, self.config)
-        settings.wait_window()
+        settings.focus_set()  # 确保窗口获得焦点
+
+    def _open_log_window(self):
+        """打开日志窗口"""
+        from .log_window import LogWindow
+        from pathlib import Path
+
+        # 日志文件路径
+        log_file = None
+        if self.config:
+            log_dir = Path(self.config.config_dir) / "logs"
+            log_file = str(log_dir / "chelp.log")
+
+        log_window = LogWindow(self, log_file)
+        log_window.focus_set()
 
 
 class ResultDialog(ctk.CTkToplevel):

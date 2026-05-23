@@ -27,6 +27,8 @@ else:
         sys.path.insert(0, src_dir)
 
 import customtkinter as ctk
+import logging
+from pathlib import Path
 from core.config import get_config
 from core.plugin_manager import PluginManager
 from core.ai_matcher import AIMatcher
@@ -37,6 +39,16 @@ def main():
     """主函数"""
     # 初始化配置
     config = get_config()
+
+    # 设置日志
+    log_dir = Path(config.config_dir) / "logs"
+    log_file = log_dir / "chelp.log"
+
+    from ui.log_window import setup_logging
+    setup_logging(str(log_file), level=logging.INFO)
+    logging.info("=" * 50)
+    logging.info(f"Chelp 启动 - 版本 {config.version}")
+    logging.info("=" * 50)
 
     # 设置主题
     ctk.set_appearance_mode(config.theme)

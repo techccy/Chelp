@@ -56,24 +56,29 @@ class InputMethodPlugin(PluginBase):
                     "data": None
                 }
 
-            # 方案1: 使用PowerShell下载并安装
+            # 先打开下载页面作为备用方案
+            import webbrowser
+            webbrowser.open(self.WECHAT_INPUT_URL)
+
+            # 尝试自动下载并安装
             result = self._install_via_powershell()
 
             if result["success"]:
-                return result
+                result["message"] = "微信输入法安装成功！请重启电脑后使用"
+            else:
+                result["message"] = "已打开微信输入法下载页面，请手动下载安装"
 
-            # 方案2: 打开下载页面让用户手动下载
-            return {
-                "success": False,
-                "message": "自动安装失败，已打开微信输入法下载页面",
-                "data": {"url": self.WECHAT_INPUT_URL}
-            }
+            return result
 
         except Exception as e:
+            # 确保至少打开下载页面
+            import webbrowser
+            webbrowser.open(self.WECHAT_INPUT_URL)
+
             return {
                 "success": False,
-                "message": f"安装失败: {str(e)}",
-                "data": None
+                "message": f"已打开下载页面，请手动安装。错误: {str(e)}",
+                "data": {"url": self.WECHAT_INPUT_URL}
             }
 
     def _install_via_powershell(self) -> Dict[str, Any]:
