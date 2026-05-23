@@ -43,14 +43,15 @@ class ConfigManager:
             "market_url": ""  # GitHub插件市场URL
         },
         "saved_state": {
-            "display": {
-                "resolution": None,
-                "scale": None
-            },
-            "input_method": {
-                "default": None
+                "display": {
+                    "resolution": "1920x1080",
+                    "scale": 100,
+                    "auto_read": False
+                },
+                "input_method": {
+                    "default": None
+                }
             }
-        }
     }
 
     def __init__(self, config_dir: str = None, config_file: str = "settings.yaml"):

@@ -12,7 +12,7 @@ class InputMethodPlugin(PluginBase):
     """输入法重装插件"""
 
     # 微信输入法下载地址（需要更新为实际地址）
-    WECHAT_INPUT_URL = "https://ime.weixin.qq.com/"
+    WECHAT_INPUT_URL = "https://z.weixin.qq.com/"
 
     @property
     def id(self) -> str:

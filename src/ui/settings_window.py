@@ -23,7 +23,7 @@ class SettingsWindow(ctk.CTkToplevel):
     def _setup_window(self):
         """设置窗口"""
         self.title("设置")
-        self.geometry("500x450")
+        self.geometry("500x600")
         self.resizable(False, False)
 
         # 居中显示
@@ -39,7 +39,8 @@ class SettingsWindow(ctk.CTkToplevel):
         # 外观设置
         self._create_appearance_section(main_frame)
 
-        # AI设置
+        # 显示设置
+        self._create_display_section(main_frame)
         self._create_ai_section(main_frame)
 
         # 保存按钮
@@ -129,6 +130,98 @@ class SettingsWindow(ctk.CTkToplevel):
             font=("Microsoft YaHei", 12)
         )
         system_radio.pack(side="left", padx=10)
+
+    def _create_display_section(self, parent):
+        """显示设置部分"""
+        section = ctk.CTkFrame(parent)
+        section.pack(fill="x", pady=(0, 15))
+
+        # 标题
+        title = ctk.CTkLabel(
+            section,
+            text="🖥️ 显示设置",
+            font=("Microsoft YaHei", 15, "bold")
+        )
+        title.pack(anchor="w", padx=15, pady=(15, 10))
+
+        # 分辨率输入
+        res_frame = ctk.CTkFrame(section, fg_color="transparent")
+        res_frame.pack(fill="x", padx=15, pady=(0, 10))
+
+        res_label = ctk.CTkLabel(
+            res_frame,
+            text="分辨率：",
+            font=("Microsoft YaHei", 12),
+            width=80
+        )
+        res_label.pack(side="left")
+
+        self.resolution_var = ctk.StringVar(
+            value=self.config.get("saved_state.display.resolution", "1920x1080")
+        )
+
+        res_entry = ctk.CTkEntry(
+            res_frame,
+            textvariable=self.resolution_var,
+            placeholder_text="1920x1080",
+            font=("Microsoft YaHei", 12)
+        )
+        res_entry.pack(side="left", fill="x", expand=True)
+
+        # 缩放比例滑块
+        scale_frame = ctk.CTkFrame(section, fg_color="transparent")
+        scale_frame.pack(fill="x", padx=15, pady=(0, 10))
+
+        scale_label = ctk.CTkLabel(
+            scale_frame,
+            text="比例%：",
+            font=("Microsoft YaHei", 12),
+            width=80
+        )
+        scale_label.pack(side="left")
+
+        self.scale_var = ctk.IntVar(
+            value=self.config.get("saved_state.display.scale", 100)
+        )
+
+        scale_slider = ctk.CTkSlider(
+            scale_frame,
+            from_=50,
+            to=200,
+            variable=self.scale_var,
+            number_of_steps=15,
+            font=("Microsoft YaHei", 12)
+        )
+        scale_slider.pack(side="left", fill="x", expand=True)
+
+        self.scale_val_label = ctk.CTkLabel(
+            scale_frame,
+            text="100",
+            font=("Microsoft YaHei", 12)
+        )
+        self.scale_val_label.pack(side="left", padx=5)
+
+        # 更新滑块值显示
+        def update_scale_label(value):
+            self.scale_val_label.configure(text=f"{int(value)}")
+
+        scale_slider.configure(command=update_scale_label)
+
+        # 自动读取当前分辨率复选框
+        auto_frame = ctk.CTkFrame(section, fg_color="transparent")
+        auto_frame.pack(fill="x", padx=15, pady=(0, 15))
+
+        self.auto_read_var = ctk.BooleanVar(
+            value=self.config.get("saved_state.display.auto_read", False)
+        )
+
+        auto_check = ctk.CTkCheckBox(
+            auto_frame,
+            text="读取当前分辨率作为标准分辨率",
+            variable=self.auto_read_var,
+            font=("Microsoft YaHei", 12)
+        )
+        auto_check.pack(side="left")
 
     def _create_ai_section(self, parent):
         """AI设置部分"""
@@ -221,6 +314,11 @@ class SettingsWindow(ctk.CTkToplevel):
         # 保存主题
         self.config.theme = self.theme_var.get()
         ctk.set_appearance_mode(self.theme_var.get())
+
+        # 保存显示设置
+        self.config.set("saved_state.display.resolution", self.resolution_var.get())
+        self.config.set("saved_state.display.scale", self.scale_var.get())
+        self.config.set("saved_state.display.auto_read", self.auto_read_var.get())
 
         # 保存AI设置
         self.config.ai_api_key = self.api_key_var.get()
@@ -317,6 +415,14 @@ class SettingsWindow(ctk.CTkToplevel):
         # 更新主题选择
         if hasattr(self, 'theme_var'):
             self.theme_var.set(self.config.theme)
+
+        # 更新显示设置
+        if hasattr(self, 'resolution_var'):
+            self.resolution_var.set(self.config.get("saved_state.display.resolution", "1920x1080"))
+        if hasattr(self, 'scale_var'):
+            self.scale_var.set(self.config.get("saved_state.display.scale", 100))
+        if hasattr(self, 'auto_read_var'):
+            self.auto_read_var.set(self.config.get("saved_state.display.auto_read", False))
 
         # 更新API密钥
         if hasattr(self, 'api_key_var'):

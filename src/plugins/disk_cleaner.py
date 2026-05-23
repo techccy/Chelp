@@ -37,24 +37,57 @@ class DiskCleanerPlugin(PluginBase):
     def keywords(self) -> list:
         return ["清理", "磁盘", "垃圾", "临时文件", "缓存", "回收站", "空间"]
 
+    def _prompt_user_selections(self) -> list:
+        """弹出对话框让用户选择清理项并返回选择列表"""
+        import tkinter as tk
+        from tkinter import simpledialog
+
+        class SelectionDialog(simpledialog.Dialog):
+            def body(self, master):
+                self.vars = {}
+                self.title("选择清理项")
+                options = [
+                    ("temp", "清理临时文件"),
+                    ("recycle", "清空回收站"),
+                    ("cleanup", "运行磁盘清理工具")
+                ]
+                for i, (key, label) in enumerate(options):
+                    var = tk.BooleanVar(value=False)
+                    chk = tk.Checkbutton(master, text=label, variable=var)
+                    chk.grid(row=i, column=0, sticky="w")
+                    self.vars[key] = var
+                return None
+
+            def apply(self):
+                self.result = [k for k, v in self.vars.items() if v.get()]
+
+        root = tk.Tk()
+        root.withdraw()
+        dlg = SelectionDialog(root)
+        root.destroy()
+        return dlg.result if dlg.result is not None else []
+
     def execute(self) -> Dict[str, Any]:
-        """执行磁盘清理"""
+        """执行磁盘清理，弹出选项让用户选择要清理的内容"""
+        # 显示弹窗让用户选择清理项
+        selections = self._prompt_user_selections()
+        if not selections:
+            return {"success": False, "message": "未选择任何清理项", "data": None}
+
         try:
             if os.name != "nt":
-                return {
-                    "success": False,
-                    "message": "此插件仅支持Windows系统",
-                    "data": None
-                }
+                return {"success": False, "message": "此插件仅支持Windows系统", "data": None}
 
-            # 方案1: 清理临时文件
-            temp_freed = self._clean_temp_files()
+            total_freed = 0
+            temp_freed = 0
+            recycle_freed = 0
 
-            # 方案2: 清空回收站
-            recycle_freed = self._empty_recycle_bin()
-
-            # 方案3: 运行磁盘清理工具
-            self._launch_disk_cleanup()
+            if "temp" in selections:
+                temp_freed = self._clean_temp_files()
+            if "recycle" in selections:
+                recycle_freed = self._empty_recycle_bin()
+            if "cleanup" in selections:
+                self._launch_disk_cleanup()
 
             total_freed = temp_freed + recycle_freed
 

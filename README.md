@@ -2,7 +2,7 @@
 
 > 一个简单易用的Windows电脑辅助工具，帮助解决常见电脑问题
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-1.1.0-blue)
 ![Python](https://img.shields.io/badge/python-3.9+-green)
 ![Platform](https://img.shields.io/badge/platform-windows-lightgrey)
 
@@ -40,13 +40,13 @@
 
 ### 方式1: 直接下载exe（推荐）
 
-从 [Releases](https://github.com/xxx/chelp/releases) 下载最新版本的安装包。
+从 [Releases](https://github.com/techccy/Chelp/releases) 下载最新版本的安装包。
 
 ### 方式2: 从源码运行
 
 ```bash
 # 克隆仓库
-git clone https://github.com/xxx/chelp.git
+git clone https://github.com/techccy/Chelp.git
 cd chelp
 
 # 安装依赖
@@ -169,4 +169,3 @@ MIT License
 ## 致谢
 
 - [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter) - 现代化UI框架
-- [DeepSeek](https://www.deepseek.com/) - AI API支持
