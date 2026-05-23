@@ -30,6 +30,9 @@ class SettingsWindow(ctk.CTkToplevel):
         self.transient(self.master)
         self.grab_set()
 
+        # 添加窗口关闭协议处理
+        self.protocol("WM_DELETE_WINDOW", self.destroy)
+
     def _create_widgets(self):
         """创建界面组件"""
         # 主容器
@@ -435,3 +438,8 @@ class SettingsWindow(ctk.CTkToplevel):
         # 更新混合模式开关
         if hasattr(self, 'hybrid_var'):
             self.hybrid_var.set(self.config.hybrid_mode)
+
+    def destroy(self):
+        """关闭窗口"""
+        self.grab_release()
+        super().destroy()

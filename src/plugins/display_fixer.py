@@ -26,6 +26,48 @@ class DisplayFixerPlugin(PluginBase):
         (1280, 720)
     ]
 
+    # Windows API 结构体和常量
+    class _DEVMODE(ctypes.Structure):
+        _fields_ = [
+            ("dmDeviceName", ctypes.c_char * 32),
+            ("dmSpecVersion", ctypes.c_ushort),
+            ("dmDriverVersion", ctypes.c_ushort),
+            ("dmSize", ctypes.c_ushort),
+            ("dmDriverExtra", ctypes.c_ushort),
+            ("dmFields", ctypes.c_ulong),
+            ("dmOrientation", ctypes.c_ushort),
+            ("dmPaperSize", ctypes.c_ushort),
+            ("dmPaperLength", ctypes.c_ushort),
+            ("dmPaperWidth", ctypes.c_ushort),
+            ("dmScale", ctypes.c_ushort),
+            ("dmCopies", ctypes.c_ushort),
+            ("dmDefaultSource", ctypes.c_ushort),
+            ("dmPrintQuality", ctypes.c_ushort),
+            ("dmPosition", ctypes.c_ulong * 2),
+            ("dmDisplayOrientation", ctypes.c_ulong),
+            ("dmDisplayFixedOutput", ctypes.c_ulong),
+            ("dmColor", ctypes.c_short),
+            ("dmDuplex", ctypes.c_short),
+            ("dmYResolution", ctypes.c_short),
+            ("dmTTOption", ctypes.c_short),
+            ("dmCollate", ctypes.c_short),
+            ("dmFormName", ctypes.c_char * 32),
+            ("dmLogPixels", ctypes.c_ushort),
+            ("dmBitsPerPel", ctypes.c_ulong),
+            ("dmPelsWidth", ctypes.c_ulong),
+            ("dmPelsHeight", ctypes.c_ulong),
+            ("dmDisplayFlags", ctypes.c_ulong),
+            ("dmDisplayFrequency", ctypes.c_ulong),
+            ("dmICMMethod", ctypes.c_ulong),
+            ("dmICMIntent", ctypes.c_ulong),
+            ("dmMediaType", ctypes.c_ulong),
+            ("dmDitherType", ctypes.c_ulong),
+            ("dmReserved1", ctypes.c_ulong),
+            ("dmReserved2", ctypes.c_ulong),
+            ("dmPanningWidth", ctypes.c_ulong),
+            ("dmPanningHeight", ctypes.c_ulong),
+        ]
+
     @property
     def id(self) -> str:
         return "display_fixer"
@@ -228,6 +270,46 @@ class DisplayFixerPlugin(PluginBase):
             return f"{width}x{height}"
         except Exception:
             return None
+
+    def _enumerate_supported_resolutions(self) -> list:
+        """获取显示器支持的所有分辨率"""
+        if os.name != "nt":
+            return self.COMMON_RESOLUTIONS.copy()
+
+        try:
+            user32 = ctypes.windll.user32
+            resolutions = []
+            mode_num = 0
+
+            while True:
+                dm = self._DEVMODE()
+                dm.dmSize = ctypes.sizeof(self._DEVMODE)
+                if not user32.EnumDisplaySettingsW(None, mode_num, ctypes.byref(dm)):
+                    break
+                resolutions.append((int(dm.dmPelsWidth), int(dm.dmPelsHeight)))
+                mode_num += 1
+
+            # 去重并排序（优先按宽度，然后按高度）
+            unique_resolutions = sorted(set(resolutions), key=lambda r: (r[0], r[1]), reverse=True)
+            return unique_resolutions
+        except Exception:
+            return self.COMMON_RESOLUTIONS.copy()
+
+    def _get_optimal_resolution(self) -> Optional[str]:
+        """获取推荐分辨率（返回支持的最高分辨率）"""
+        try:
+            supported = self._enumerate_supported_resolutions()
+            if supported:
+                # 返回最高分辨率
+                return f"{supported[0][0]}x{supported[0][1]}"
+            return None
+        except Exception:
+            return None
+
+    def get_supported_resolutions(self) -> list:
+        """获取支持的分辨率列表（用于UI显示）"""
+        resolutions = self._enumerate_supported_resolutions()
+        return [f"{w}x{h}" for w, h in resolutions]
 
     def pre_check(self) -> str | None:
         """执行前检查"""

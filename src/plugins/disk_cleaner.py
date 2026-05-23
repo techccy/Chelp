@@ -37,77 +37,8 @@ class DiskCleanerPlugin(PluginBase):
     def keywords(self) -> list:
         return ["清理", "磁盘", "垃圾", "临时文件", "缓存", "回收站", "空间"]
 
-    def _prompt_user_selections(self) -> list:
-        """弹出对话框让用户选择清理项并返回选择列表"""
-        import tkinter as tk
-
-        selections = []
-
-        class SelectionDialog(tk.Toplevel):
-            def __init__(self, parent):
-                super().__init__(parent)
-                self.title("选择清理项")
-                self.geometry("300x200")
-                self.resizable(False, False)
-
-                # 居中显示
-                self.transient(parent)
-                self.grab_set()
-
-                self.vars = {}
-                self.result = None
-
-                self._create_widgets()
-
-            def _create_widgets(self):
-                frame = tk.Frame(self, padx=20, pady=20)
-                frame.pack(fill="both", expand=True)
-
-                options = [
-                    ("temp", "清理临时文件"),
-                    ("recycle", "清空回收站"),
-                    ("cleanup", "运行磁盘清理工具")
-                ]
-
-                for i, (key, label) in enumerate(options):
-                    var = tk.BooleanVar(value=False)
-                    chk = tk.Checkbutton(frame, text=label, variable=var)
-                    chk.grid(row=i, column=0, sticky="w", pady=5)
-                    self.vars[key] = var
-
-                # 按钮框
-                btn_frame = tk.Frame(self)
-                btn_frame.pack(pady=10)
-
-                ok_btn = tk.Button(btn_frame, text="确定", width=10, command=self.on_ok)
-                ok_btn.pack(side="left", padx=5)
-
-                cancel_btn = tk.Button(btn_frame, text="取消", width=10, command=self.on_cancel)
-                cancel_btn.pack(side="left", padx=5)
-
-            def on_ok(self):
-                self.result = [k for k, v in self.vars.items() if v.get()]
-                self.destroy()
-
-            def on_cancel(self):
-                self.result = []
-                self.destroy()
-
-        root = tk.Tk()
-        root.withdraw()
-        dlg = SelectionDialog(root)
-        dlg.wait_window()
-        root.destroy()
-
-        return dlg.result if dlg.result is not None else []
-
     def execute(self) -> Dict[str, Any]:
-        """执行磁盘清理，弹出选项让用户选择要清理的内容"""
-        # 显示弹窗让用户选择清理项
-        selections = self._prompt_user_selections()
-        if not selections:
-            return {"success": False, "message": "未选择任何清理项", "data": None}
-
+        """执行磁盘清理，清理临时文件和回收站"""
         try:
             if os.name != "nt":
                 return {"success": False, "message": "此插件仅支持Windows系统", "data": None}
@@ -115,19 +46,28 @@ class DiskCleanerPlugin(PluginBase):
             total_freed = 0
             temp_freed = 0
             recycle_freed = 0
+            details = []
 
-            if "temp" in selections:
-                temp_freed = self._clean_temp_files()
-            if "recycle" in selections:
-                recycle_freed = self._empty_recycle_bin()
-            if "cleanup" in selections:
-                self._launch_disk_cleanup()
+            # 清理临时文件
+            temp_freed = self._clean_temp_files()
+            if temp_freed > 0:
+                details.append(f"临时文件: {temp_freed} MB")
+                total_freed += temp_freed
 
-            total_freed = temp_freed + recycle_freed
+            # 清空回收站
+            recycle_freed = self._empty_recycle_bin()
+            if recycle_freed > 0:
+                details.append(f"回收站: ~{recycle_freed} MB")
+                total_freed += recycle_freed
+
+            if total_freed > 0:
+                message = f"清理完成，释放约 {total_freed} MB 空间\n" + "\n".join(details)
+            else:
+                message = "清理完成，未发现需要清理的文件"
 
             return {
                 "success": True,
-                "message": f"清理完成，释放约 {total_freed} MB 空间",
+                "message": message,
                 "data": {
                     "temp_freed": temp_freed,
                     "recycle_freed": recycle_freed,
