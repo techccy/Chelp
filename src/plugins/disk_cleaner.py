@@ -40,31 +40,65 @@ class DiskCleanerPlugin(PluginBase):
     def _prompt_user_selections(self) -> list:
         """弹出对话框让用户选择清理项并返回选择列表"""
         import tkinter as tk
-        from tkinter import simpledialog
 
-        class SelectionDialog(simpledialog.Dialog):
-            def body(self, master):
-                self.vars = {}
+        selections = []
+
+        class SelectionDialog(tk.Toplevel):
+            def __init__(self, parent):
+                super().__init__(parent)
                 self.title("选择清理项")
+                self.geometry("300x200")
+                self.resizable(False, False)
+
+                # 居中显示
+                self.transient(parent)
+                self.grab_set()
+
+                self.vars = {}
+                self.result = None
+
+                self._create_widgets()
+
+            def _create_widgets(self):
+                frame = tk.Frame(self, padx=20, pady=20)
+                frame.pack(fill="both", expand=True)
+
                 options = [
                     ("temp", "清理临时文件"),
                     ("recycle", "清空回收站"),
                     ("cleanup", "运行磁盘清理工具")
                 ]
+
                 for i, (key, label) in enumerate(options):
                     var = tk.BooleanVar(value=False)
-                    chk = tk.Checkbutton(master, text=label, variable=var)
-                    chk.grid(row=i, column=0, sticky="w")
+                    chk = tk.Checkbutton(frame, text=label, variable=var)
+                    chk.grid(row=i, column=0, sticky="w", pady=5)
                     self.vars[key] = var
-                return None
 
-            def apply(self):
+                # 按钮框
+                btn_frame = tk.Frame(self)
+                btn_frame.pack(pady=10)
+
+                ok_btn = tk.Button(btn_frame, text="确定", width=10, command=self.on_ok)
+                ok_btn.pack(side="left", padx=5)
+
+                cancel_btn = tk.Button(btn_frame, text="取消", width=10, command=self.on_cancel)
+                cancel_btn.pack(side="left", padx=5)
+
+            def on_ok(self):
                 self.result = [k for k, v in self.vars.items() if v.get()]
+                self.destroy()
+
+            def on_cancel(self):
+                self.result = []
+                self.destroy()
 
         root = tk.Tk()
         root.withdraw()
         dlg = SelectionDialog(root)
+        dlg.wait_window()
         root.destroy()
+
         return dlg.result if dlg.result is not None else []
 
     def execute(self) -> Dict[str, Any]:
