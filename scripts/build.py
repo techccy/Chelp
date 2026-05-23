@@ -20,6 +20,9 @@ def build():
         print("请先安装 PyInstaller: pip install pyinstaller")
         return
 
+    # 路径分隔符（Windows用;，其他用:）
+    path_sep = ";" if os.name == "nt" else ":"
+
     # PyInstaller参数
     params = [
         "pyinstaller",
@@ -27,10 +30,25 @@ def build():
         "--onefile",
         "--windowed",
         "--icon=assets/icon.ico" if os.path.exists("assets/icon.ico") else "",
-        "--add-data=src:src",
-        "--add-data=config:config",
+        f"--add-data=src/core{path_sep}src/core",
+        f"--add-data=src/ui{path_sep}src/ui",
+        f"--add-data=src/plugins{path_sep}src/plugins",
+        f"--add-data=config{path_sep}config",
         "--hidden-import=customtkinter",
         "--hidden-import=PIL",
+        "--hidden-import=core.config",
+        "--hidden-import=core.plugin_manager",
+        "--hidden-import=core.ai_matcher",
+        "--hidden-import=core.updater",
+        "--hidden-import=ui.main_window",
+        "--hidden-import=ui.ai_chat_window",
+        "--hidden-import=ui.settings_window",
+        "--hidden-import=plugins.base",
+        "--hidden-import=plugins.disk_cleaner",
+        "--hidden-import=plugins.display_fixer",
+        "--hidden-import=plugins.input_method",
+        "--hidden-import=plugins.network_fixer",
+        "--hidden-import=plugins.startup_manager",
         "--noconfirm",
         "src/main.py"
     ]

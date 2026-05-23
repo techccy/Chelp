@@ -29,7 +29,27 @@ jobs:
 
     - name: Build with PyInstaller
       run: |
-        pyinstaller --name=Chelp --onefile --windowed --add-data="src;src" --add-data="config;config" --hidden-import=customtkinter --hidden-import=PIL --noconfirm src/main.py
+        pyinstaller --name=Chelp --onefile --windowed `
+          --add-data="src/core;src/core" `
+          --add-data="src/ui;src/ui" `
+          --add-data="src/plugins;src/plugins" `
+          --add-data="config;config" `
+          --hidden-import=customtkinter `
+          --hidden-import=PIL `
+          --hidden-import=core.config `
+          --hidden-import=core.plugin_manager `
+          --hidden-import=core.ai_matcher `
+          --hidden-import=core.updater `
+          --hidden-import=ui.main_window `
+          --hidden-import=ui.ai_chat_window `
+          --hidden-import=ui.settings_window `
+          --hidden-import=plugins.base `
+          --hidden-import=plugins.disk_cleaner `
+          --hidden-import=plugins.display_fixer `
+          --hidden-import=plugins.input_method `
+          --hidden-import=plugins.network_fixer `
+          --hidden-import=plugins.startup_manager `
+          --noconfirm src/main.py
 
     - name: Create archive
       run: |

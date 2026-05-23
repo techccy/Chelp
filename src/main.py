@@ -6,8 +6,25 @@ Chelp - 电脑小助手
 import sys
 import os
 
-# 添加项目路径
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# 处理打包后的路径
+if getattr(sys, 'frozen', False):
+    # 打包后的exe环境
+    if hasattr(sys, '_MEIPASS'):
+        # PyInstaller解压临时目录
+        bundle_dir = sys._MEIPASS
+        src_dir = os.path.join(bundle_dir, 'src')
+        if src_dir not in sys.path:
+            sys.path.insert(0, src_dir)
+    # 当前exe所在目录（用于运行时资源）
+    if getattr(sys, 'executable', None):
+        app_dir = os.path.dirname(sys.executable)
+        if app_dir not in sys.path:
+            sys.path.insert(0, app_dir)
+else:
+    # 开发环境
+    src_dir = os.path.dirname(os.path.abspath(__file__))
+    if src_dir not in sys.path:
+        sys.path.insert(0, src_dir)
 
 import customtkinter as ctk
 from core.config import get_config
