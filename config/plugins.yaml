@@ -1,0 +1,40 @@
+# 插件配置文件
+
+plugins:
+  # 磁盘清理插件
+  - id: disk_cleaner
+    name: 磁盘清理
+    category: 系统清理
+    enabled: true
+    settings:
+      auto_select_all: true
+      clean_recycle_bin: true
+
+  # 显示恢复插件
+  - id: display_fixer
+    name: 显示恢复
+    category: 显示设置
+    enabled: true
+    settings:
+      default_resolution: "1920x1080"
+      default_scale: 100
+
+  # 输入法插件
+  - id: input_method
+    name: 重装微信输入法
+    category: 输入法
+    enabled: true
+    settings:
+      auto_set_default: true
+
+  # 网络修复插件
+  - id: network_fixer
+    name: 网络诊断修复
+    category: 网络
+    enabled: true
+
+  # 启动项管理插件
+  - id: startup_manager
+    name: 启动项管理
+    category: 系统清理
+    enabled: true

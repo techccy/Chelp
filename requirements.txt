@@ -1,0 +1,20 @@
+# Chelp - 电脑小助手
+# Python依赖包
+
+# UI框架
+customtkinter>=5.2.0
+
+# 配置管理
+PyYAML>=6.0
+
+# 网络请求
+requests>=2.31.0
+
+# AI接口
+openai>=1.0.0
+
+# 打包工具
+pyinstaller>=6.0.0
+
+# Windows系统相关（Windows专用）
+pywin32>=306; sys_platform == 'win32'

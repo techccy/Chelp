@@ -1,0 +1,65 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Build with PyInstaller
+      run: |
+        pyinstaller --name=Chelp --onefile --windowed --add-data="src;src" --add-data="config;config" --hidden-import=customtkinter --hidden-import=PIL --noconfirm src/main.py
+
+    - name: Create archive
+      run: |
+        cd dist
+        7z a ../Chelp.zip Chelp.exe
+        cd ..
+
+    - name: Get version
+      id: version
+      run: |
+        if ("${{ github.ref }}" -match "refs/tags/v*") {
+          $version = "${{ github.ref }}" -replace "refs/tags/v", ""
+        } else {
+          $version = "latest"
+        }
+        echo "version=$version" >> $env:GITHUB_OUTPUT
+      shell: pwsh
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: Chelp-Windows
+        path: Chelp.zip
+
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: Chelp.zip
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
